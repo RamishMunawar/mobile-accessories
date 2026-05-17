@@ -1,41 +1,7 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useMemo } from 'react'
 import { useIsMobile } from '../../hooks/useIsMobile'
-
-const defaultItems = [
-  {
-    id: 1,
-    title: 'Active Wear Innovation',
-    brand: 'Nike',
-    description:
-      'Integrating flexible sensors into performance gear to monitor muscle fatigue and heart rate in real-time.',
-    tags: ['Sports', 'Health', 'IoT'],
-    imageUrl:
-      'https://images.unsplash.com/photo-1515243061678-14fc18b93935?q=80&w=2940&auto=format&fit=crop',
-    link: '#',
-  },
-  {
-    id: 2,
-    title: 'Smart Ergonomics',
-    brand: 'Herman Miller',
-    description:
-      'Pressure-sensitive fabrics in office chairs that analyze posture and suggest adjustments for optimal health.',
-    tags: ['Office', 'Health', 'Furniture'],
-    imageUrl:
-      'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?q=80&w=2938&auto=format&fit=crop',
-    link: '#',
-  },
-  {
-    id: 3,
-    title: 'Automotive Comfort',
-    brand: 'Tesla',
-    description:
-      'Intelligent car seats that adapt to passenger position and monitor vital signs for enhanced safety.',
-    tags: ['Auto', 'Safety', 'Smart'],
-    imageUrl:
-      'https://images.unsplash.com/photo-1561580125-028ce3bfcb25?q=80&w=2940&auto=format&fit=crop',
-    link: '#',
-  },
-]
+import { useSiteUpdate } from '../../hooks/useSiteUpdate'
+import { getMergedStoryCarousel } from '../../site/siteStore'
 
 function ChevronLeftIcon(props) {
   return (
@@ -63,12 +29,18 @@ function ArrowRightIcon(props) {
 }
 
 export default function ThreeDCarousel({
-  items = defaultItems,
-  autoRotate = true,
-  rotateInterval = 4000,
+  items: itemsProp,
+  autoRotate: autoRotateProp,
+  rotateInterval: rotateIntervalProp,
   cardHeight = 500,
   isMobileSwipe = true,
 }) {
+  const siteVersion = useSiteUpdate()
+  const merged = useMemo(() => getMergedStoryCarousel(), [siteVersion])
+  const items = itemsProp ?? merged.items
+  const autoRotate = autoRotateProp ?? merged.autoRotate
+  const rotateInterval = rotateIntervalProp ?? merged.rotateInterval
+
   const [active, setActive] = useState(0)
   const carouselRef = useRef(null)
   const [isInView, setIsInView] = useState(false)

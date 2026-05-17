@@ -48,6 +48,12 @@ export default function AdminDashboardPage() {
           description="Countdown banner with headline, CTA, product image, and offer end date."
           icon={<IconMegaphone />}
         />
+        <AdminDashLinkCard
+          to="/admin/story-carousel"
+          title="3D story carousel"
+          description="Center-focused cards: image overlay, brand, title, description, tags, and Learn more links."
+          icon={<IconCarousel />}
+        />
       </ul>
 
       <section className="relative mt-14 overflow-hidden rounded-2xl border border-red-200/60 bg-gradient-to-br from-red-50/90 via-white to-orange-50/40 p-6 shadow-inner dark:border-red-900/50 dark:from-red-950/35 dark:via-app-card dark:to-app-card md:p-8">
@@ -60,9 +66,9 @@ export default function AdminDashboardPage() {
             Reset storefront data
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-exclusive-muted">
-            Clears hero, homepage products, featured arrival, music promo banner, cables, batteries, and
-            smart-watch category overrides in this browser. The storefront returns to empty defaults until you add
-            content again.
+            Clears hero, homepage products, featured arrival, music promo banner, 3D story carousel, cables,
+            batteries, and smart-watch category overrides in this browser. The storefront returns to empty defaults
+            until you add content again.
           </p>
           <Button
             type="button"
@@ -78,6 +84,15 @@ export default function AdminDashboardPage() {
         </div>
       </section>
     </div>
+  )
+}
+
+function IconCarousel() {
+  return (
+    <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.75">
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <path d="M8 10v4M16 10v4" strokeLinecap="round" />
+    </svg>
   )
 }
 

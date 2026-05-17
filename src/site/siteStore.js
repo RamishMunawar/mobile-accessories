@@ -9,6 +9,10 @@ import {
   smartWatchCategoryMeta as defaultSwCategoryMeta,
 } from '../data/smartWatchProducts'
 import { defaultPromoBanner } from '../data/promoBannerDefaults'
+import {
+  defaultStoryCarouselCards,
+  defaultStoryCarouselSettings,
+} from '../data/storyCarouselDefaults'
 
 export const SITE_EVENT = 'exclusive-site-data'
 
@@ -32,6 +36,7 @@ const KEYS = {
   smartWatchesPages: 'exclusive-admin-smart-watches-pages-v1',
   featuredArrival: 'exclusive-admin-featured-arrival-v1',
   promoBanner: 'exclusive-admin-promo-banner-v1',
+  storyCarousel: 'exclusive-admin-story-carousel-v1',
 }
 
 /** @typedef {{ title: string; blurb: string }} CategoryPageMeta */
@@ -39,6 +44,8 @@ const KEYS = {
 /** @typedef {{ id: string; title: string; description: string; image: string; href: string }} FeaturedArrivalTile */
 /** @typedef {{ eyebrow: string; title: string; tiles: FeaturedArrivalTile[] }} FeaturedArrivalBundle */
 /** @typedef {import('../data/promoBannerDefaults').PromoBannerBundle} PromoBannerBundle */
+/** @typedef {import('../data/storyCarouselDefaults').StoryCarouselCard} StoryCarouselCard */
+/** @typedef {{ items: StoryCarouselCard[]; autoRotate: boolean; rotateInterval: number }} StoryCarouselBundle */
 
 const EMPTY_FEATURED_ARRIVAL = /** @type {const} */ ({
   eyebrow: '',
@@ -157,6 +164,76 @@ export function setMergedFeaturedArrival(bundle) {
       })),
     }),
   )
+  notifySite()
+}
+
+/** @returns {StoryCarouselBundle} */
+export function getMergedStoryCarousel() {
+  const fallback = {
+    items: defaultStoryCarouselCards.map((c) => ({ ...c, tags: [...c.tags] })),
+    ...defaultStoryCarouselSettings,
+  }
+  if (typeof window === 'undefined') return fallback
+  try {
+    const raw = localStorage.getItem(KEYS.storyCarousel)
+    if (!raw) return fallback
+    const o = JSON.parse(raw)
+    if (!o || typeof o !== 'object') return fallback
+    const itemsRaw = Array.isArray(o.items) ? o.items : []
+    /** @type {StoryCarouselCard[]} */
+    const items =
+      itemsRaw.length > 0
+        ? itemsRaw.map((row, i) => {
+            const t = /** @type {Record<string, unknown>} */ (row && typeof row === 'object' ? row : {})
+            const tagsRaw = Array.isArray(t.tags) ? t.tags : []
+            return {
+              id: String(t.id ?? `story-${i}`).trim() || `story-${i}`,
+              title: String(t.title ?? '').trim(),
+              brand: String(t.brand ?? '').trim(),
+              description: String(t.description ?? '').trim(),
+              tags: tagsRaw.map((tag) => String(tag).trim()).filter(Boolean),
+              imageUrl: String(t.imageUrl ?? '').trim(),
+              link: String(t.link ?? '').trim() || '#',
+            }
+          })
+        : fallback.items
+    const interval = Number(o.rotateInterval)
+    return {
+      items,
+      autoRotate: o.autoRotate !== false,
+      rotateInterval: Number.isFinite(interval) && interval >= 2000 ? interval : fallback.rotateInterval,
+    }
+  } catch {
+    return fallback
+  }
+}
+
+/** @param {StoryCarouselBundle} bundle */
+export function setMergedStoryCarousel(bundle) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(
+    KEYS.storyCarousel,
+    JSON.stringify({
+      items: bundle.items.map((c) => ({
+        id: c.id.trim(),
+        title: c.title.trim(),
+        brand: c.brand.trim(),
+        description: c.description.trim(),
+        tags: c.tags.map((t) => t.trim()).filter(Boolean),
+        imageUrl: c.imageUrl.trim(),
+        link: c.link.trim() || '#',
+      })),
+      autoRotate: bundle.autoRotate !== false,
+      rotateInterval: bundle.rotateInterval,
+    }),
+  )
+  notifySite()
+}
+
+/** Clears admin overrides for the 3D story carousel (storefront uses bundled defaults). */
+export function clearMergedStoryCarousel() {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem(KEYS.storyCarousel)
   notifySite()
 }
 
@@ -381,6 +458,7 @@ export function clearSiteOverrides() {
   localStorage.removeItem(KEYS.smartWatchesPages)
   localStorage.removeItem(KEYS.featuredArrival)
   localStorage.removeItem(KEYS.promoBanner)
+  localStorage.removeItem(KEYS.storyCarousel)
   notifySite()
 }
 

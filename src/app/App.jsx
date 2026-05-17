@@ -23,6 +23,7 @@ import AdminProductsPage from '../pages/admin/AdminProductsPage'
 import AdminCategoryPagesPage from '../pages/admin/AdminCategoryPagesPage'
 import AdminFeaturedArrivalPage from '../pages/admin/AdminFeaturedArrivalPage'
 import AdminPromoBannerPage from '../pages/admin/AdminPromoBannerPage'
+import AdminStoryCarouselPage from '../pages/admin/AdminStoryCarouselPage'
 
 export default function App() {
   return (
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="categories" element={<AdminCategoryPagesPage />} />
             <Route path="featured-arrival" element={<AdminFeaturedArrivalPage />} />
             <Route path="promo-banner" element={<AdminPromoBannerPage />} />
+            <Route path="story-carousel" element={<AdminStoryCarouselPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

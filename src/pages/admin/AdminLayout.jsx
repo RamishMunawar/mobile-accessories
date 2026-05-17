@@ -10,6 +10,7 @@ const nav = [
   { to: '/admin/categories', label: 'Categories & watches', icon: IconLayers },
   { to: '/admin/featured-arrival', label: 'Featured arrival', icon: IconSparkles },
   { to: '/admin/promo-banner', label: 'Music promo banner', icon: IconMegaphone },
+  { to: '/admin/story-carousel', label: '3D story carousel', icon: IconCarousel },
 ]
 
 export default function AdminLayout() {
@@ -146,6 +147,18 @@ export default function AdminLayout() {
         </div>
       </div>
     </div>
+  )
+}
+
+function IconCarousel() {
+  return (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.85">
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <path d="M8 10v4M16 10v4" strokeLinecap="round" />
+      <circle cx="7" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="17" cy="12" r="1" fill="currentColor" stroke="none" />
+    </svg>
   )
 }
 
