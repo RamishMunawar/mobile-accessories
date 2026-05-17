@@ -10,9 +10,11 @@ export default function AdminDashboardPage() {
         title="Overview"
         description={
           <>
-            Changes apply immediately on the public site in this browser. There is no backend — uploads
-            live in <span className="font-medium text-exclusive-dark">localStorage</span> as URLs or
-            small embedded images.
+            Changes apply immediately on the public site in this browser. Image uploads are saved under{' '}
+            <span className="font-medium text-exclusive-dark">public/uploads</span> (paths like{' '}
+            <span className="font-medium text-exclusive-dark">/uploads/…</span>) while{' '}
+            <span className="font-medium text-exclusive-dark">npm run dev</span> is running; other content
+            is stored in <span className="font-medium text-exclusive-dark">localStorage</span>.
           </>
         }
       />

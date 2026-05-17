@@ -4,7 +4,7 @@ import { ButtonLink } from '../../components/ui/Button'
 import { useCountdown } from '../../hooks/useCountdown'
 import { defaultCountdownEnd } from '../../data/promoBannerDefaults'
 import { getMergedPromoBanner, setMergedPromoBanner } from '../../site/siteStore'
-import { readFileAsDataUrl } from '../../utils/readDataUrlFile'
+import { uploadAdminImage } from '../../utils/uploadAdminImage'
 import { adminCardClass, adminInputClass } from './adminFieldClasses'
 import { AdminFlash, AdminPageHeader } from './AdminUi'
 
@@ -90,7 +90,7 @@ export default function AdminPromoBannerPage() {
     const file = e.target.files?.[0]
     if (!file) return
     try {
-      const url = await readFileAsDataUrl(file)
+      const url = await uploadAdminImage(file)
       setImage(url)
       setMessage('')
       setError('')

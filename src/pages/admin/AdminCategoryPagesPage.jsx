@@ -10,7 +10,7 @@ import {
   setMergedBatteriesPage,
   setMergedSmartWatchCategoryPage,
 } from '../../site/siteStore'
-import { readFileAsDataUrl } from '../../utils/readDataUrlFile'
+import { uploadAdminImage } from '../../utils/uploadAdminImage'
 import { adminCardClass, adminCardMetaClass, adminInputClass } from './adminFieldClasses'
 import { AdminFlash, AdminPageHeader, AdminSegmentedTabs } from './AdminUi'
 
@@ -615,7 +615,7 @@ export default function AdminCategoryPagesPage() {
                       e.target.value = ''
                       if (!file) return
                       try {
-                        const url = await readFileAsDataUrl(file)
+                        const url = await uploadAdminImage(file)
                         patchDraft((p) => ({
                           ...p,
                           heroSlides: p.heroSlides.map((row, i) =>
@@ -728,7 +728,7 @@ export default function AdminCategoryPagesPage() {
                     e.target.value = ''
                     if (!file) return
                     try {
-                      const url = await readFileAsDataUrl(file)
+                      const url = await uploadAdminImage(file)
                       patchDraft((p) => ({
                         ...p,
                         products: p.products.map((x, i) => (i === index ? { ...x, image: url } : x)),

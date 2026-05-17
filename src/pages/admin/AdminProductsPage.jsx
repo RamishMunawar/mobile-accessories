@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { getMergedProducts, setMergedProducts } from '../../site/siteStore'
-import { readFileAsDataUrl } from '../../utils/readDataUrlFile'
+import { uploadAdminImage } from '../../utils/uploadAdminImage'
 import { adminCardClass, adminCardMetaClass, adminInputClass } from './adminFieldClasses'
 import { AdminFlash, AdminPageHeader, AdminSegmentedTabs } from './AdminUi'
 
@@ -192,7 +192,7 @@ export default function AdminProductsPage() {
                     e.target.value = ''
                     if (!file) return
                     try {
-                      const url = await readFileAsDataUrl(file)
+                      const url = await uploadAdminImage(file)
                       updateAt(index, { image: url })
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Upload failed')

@@ -1,7 +1,7 @@
 import { useId, useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { getMergedFeaturedArrival, setMergedFeaturedArrival } from '../../site/siteStore'
-import { readFileAsDataUrl } from '../../utils/readDataUrlFile'
+import { uploadAdminImage } from '../../utils/uploadAdminImage'
 import { adminCardClass, adminCardMetaClass, adminInputClass } from './adminFieldClasses'
 import { AdminFlash, AdminPageHeader } from './AdminUi'
 
@@ -229,7 +229,7 @@ export default function AdminFeaturedArrivalPage() {
                     e.target.value = ''
                     if (!file) return
                     try {
-                      const url = await readFileAsDataUrl(file)
+                      const url = await uploadAdminImage(file)
                       patchTile(index, { image: url })
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Upload failed')

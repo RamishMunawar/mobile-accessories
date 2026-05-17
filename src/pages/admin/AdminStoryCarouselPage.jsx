@@ -5,7 +5,7 @@ import {
   getMergedStoryCarousel,
   setMergedStoryCarousel,
 } from '../../site/siteStore'
-import { readFileAsDataUrl } from '../../utils/readDataUrlFile'
+import { uploadAdminImage } from '../../utils/uploadAdminImage'
 import { adminCardClass, adminCardMetaClass, adminInputClass } from './adminFieldClasses'
 import { AdminFlash, AdminPageHeader } from './AdminUi'
 
@@ -272,7 +272,7 @@ export default function AdminStoryCarouselPage() {
                     e.target.value = ''
                     if (!file) return
                     try {
-                      const url = await readFileAsDataUrl(file)
+                      const url = await uploadAdminImage(file)
                       patchCard(index, { imageUrl: url })
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Upload failed')
