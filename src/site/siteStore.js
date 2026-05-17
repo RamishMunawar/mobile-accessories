@@ -13,6 +13,8 @@ import {
   defaultStoryCarouselCards,
   defaultStoryCarouselSettings,
 } from '../data/storyCarouselDefaults'
+import { defaultHeroSlides } from '../data/heroSlides.defaults'
+import { getDefaultProductsBundle } from '../data/products.defaults'
 
 export const SITE_EVENT = 'exclusive-site-data'
 
@@ -237,22 +239,16 @@ export function clearMergedStoryCarousel() {
   notifySite()
 }
 
-const EMPTY_MERGED = /** @type {const} */ ({
-  flash: [],
-  best: [],
-  explore: [],
-})
-
 export function getHeroSlides() {
-  if (typeof window === 'undefined') return []
+  if (typeof window === 'undefined') return [...defaultHeroSlides]
   try {
     const raw = localStorage.getItem(KEYS.hero)
-    if (!raw) return []
+    if (!raw) return [...defaultHeroSlides]
     const parsed = JSON.parse(raw)
-    if (!Array.isArray(parsed) || parsed.length === 0) return []
+    if (!Array.isArray(parsed)) return [...defaultHeroSlides]
     return parsed
   } catch {
-    return []
+    return [...defaultHeroSlides]
   }
 }
 
@@ -268,10 +264,11 @@ export function setHeroSlides(slides) {
 
 /** @returns {MergedProducts} */
 export function getMergedProducts() {
-  if (typeof window === 'undefined') return { ...EMPTY_MERGED }
+  const defaults = getDefaultProductsBundle()
+  if (typeof window === 'undefined') return defaults
   try {
     const raw = localStorage.getItem(KEYS.products)
-    if (!raw) return { ...EMPTY_MERGED }
+    if (!raw) return defaults
     const o = JSON.parse(raw)
     return {
       flash: Array.isArray(o.flash) ? o.flash : [],
@@ -279,7 +276,7 @@ export function getMergedProducts() {
       explore: Array.isArray(o.explore) ? o.explore : [],
     }
   } catch {
-    return { ...EMPTY_MERGED }
+    return defaults
   }
 }
 
