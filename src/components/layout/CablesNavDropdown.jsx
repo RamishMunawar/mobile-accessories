@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import { normalizeBatteryTypeSlug } from '../../data/batteryCategories'
-import { batteriesNavDropdownItems } from '../../data/batteriesNavDropdown'
+import { normalizeCableTypeSlug } from '../../data/cableCategories'
+import { cablesNavDropdownItems } from '../../data/cablesNavDropdown'
 import { useNavDropdownAnchor } from '../../hooks/useNavDropdownAnchor'
 import { cn } from '../../utils/cn'
 
@@ -16,10 +16,10 @@ const PANEL_WIDTH = 260
  *   anchorRef: React.RefObject<HTMLElement | null>
  * }} props
  */
-export function BatteriesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }) {
+export function CablesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }) {
   const location = useLocation()
   const [searchParams] = useSearchParams()
-  const activeType = normalizeBatteryTypeSlug(searchParams.get('type'))
+  const activeType = normalizeCableTypeSlug(searchParams.get('type'))
   const position = useNavDropdownAnchor(anchorRef, open, PANEL_WIDTH)
 
   if (!open) return null
@@ -32,10 +32,10 @@ export function BatteriesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }
         onClick={onClose}
       />
       <div
-        id="batteries-nav-dropdown-panel"
-        data-batteries-nav="panel"
+        id="cables-nav-dropdown-panel"
+        data-cables-nav="panel"
         role="menu"
-        aria-label="Battery categories"
+        aria-label="Cable categories"
         className="fixed z-50 max-h-[min(70vh,420px)] overflow-y-auto rounded-lg border border-app-border-subtle bg-app-card py-2 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.25)] ring-1 ring-black/5"
         style={{
           top: position.top,
@@ -46,10 +46,9 @@ export function BatteriesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }
         onMouseLeave={onLeave}
       >
         <ul className="m-0 list-none p-0">
-          {batteriesNavDropdownItems.map((item) => {
+          {cablesNavDropdownItems.map((item) => {
             const isActive =
-              location.pathname === '/batteries' &&
-              normalizeBatteryTypeSlug(item.type) === activeType
+              location.pathname === '/cables' && normalizeCableTypeSlug(item.type) === activeType
             return (
               <li key={item.label} role="none">
                 <Link
@@ -74,7 +73,7 @@ export function BatteriesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }
   )
 }
 
-export function useBatteriesNavMenu() {
+export function useCablesNavMenu() {
   const [open, setOpen] = useState(false)
   const leaveTimerRef = useRef(null)
 
@@ -114,7 +113,7 @@ export function useBatteriesNavMenu() {
     if (!open) return undefined
     function onDocDown(e) {
       const t = e.target
-      if (t instanceof Node && !t.closest?.('[data-batteries-nav]')) close()
+      if (t instanceof Node && !t.closest?.('[data-cables-nav]')) close()
     }
     function onKey(e) {
       if (e.key === 'Escape') close()

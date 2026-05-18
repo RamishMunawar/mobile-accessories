@@ -6,12 +6,11 @@ import { useCart } from '../../context/CartContext'
 import { getSession, logoutMock } from '../../auth/mockAuth'
 import { mainNav } from '../../data/navigation'
 import { batteriesNavDropdownItems } from '../../data/batteriesNavDropdown'
-import { smartWatchMegaGrid } from '../../data/smartWatchesMegaMenu'
+import { cablesNavDropdownItems } from '../../data/cablesNavDropdown'
+import { smartWatchesNavDropdownItems } from '../../data/smartWatchesNavDropdown'
 import { cn } from '../../utils/cn'
-import {
-  SmartWatchesMegaPanel,
-  useSmartWatchesMegaMenu,
-} from './SmartWatchesMegaMenu'
+import { SmartWatchesNavPanel, useSmartWatchesNavMenu } from './SmartWatchesNavDropdown'
+import { CablesNavPanel, useCablesNavMenu } from './CablesNavDropdown'
 import { BatteriesNavPanel, useBatteriesNavMenu } from './BatteriesNavDropdown'
 import SparkleNavbar from './SparkleNavbar'
 import { IconCart, IconHeart, IconSearch, IconUser } from '../ui/Icons'
@@ -26,11 +25,16 @@ const SCROLL_FULL_PX = 20
 export default function Header() {
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const smartMega = useSmartWatchesMegaMenu()
+  const watchNav = useSmartWatchesNavMenu()
+  const cableNav = useCablesNavMenu()
   const batteryNav = useBatteriesNavMenu()
+  const watchTriggerRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
+  const cableTriggerRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
+  const batteryTriggerRef = useRef(/** @type {HTMLButtonElement | null} */ (null))
   const [accountOpen, setAccountOpen] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [mobileSwOpen, setMobileSwOpen] = useState(false)
+  const [mobileCablesOpen, setMobileCablesOpen] = useState(false)
   const [mobileBatteriesOpen, setMobileBatteriesOpen] = useState(false)
   const [floatNav, setFloatNav] = useState(false)
   const floatNavRef = useRef(false)
@@ -41,10 +45,12 @@ export default function Header() {
   const { itemCount: cartItemCount } = useCart()
 
   useEffect(() => {
-    smartMega.close()
+    watchNav.close()
+    cableNav.close()
     batteryNav.close()
     setMobileNavOpen(false)
     setMobileSwOpen(false)
+    setMobileCablesOpen(false)
     setMobileBatteriesOpen(false)
   }, [pathname])
 
@@ -136,7 +142,8 @@ export default function Header() {
             aria-controls="mobile-sidebar-menu"
             onClick={() => {
               setMobileNavOpen((o) => !o)
-              smartMega.close()
+              watchNav.close()
+              cableNav.close()
               batteryNav.close()
               setAccountOpen(false)
             }}
@@ -155,20 +162,33 @@ export default function Header() {
           <SparkleNavbar
             entries={mainNav}
             color="#db4444"
-            megaPanelOpen={smartMega.open}
+            watchPanelOpen={watchNav.open}
+            cablePanelOpen={cableNav.open}
             batteryPanelOpen={batteryNav.open}
-            onMegaEnter={() => {
+            onWatchEnter={() => {
+              cableNav.close()
               batteryNav.close()
-              smartMega.enter()
+              watchNav.enter()
             }}
-            onMegaLeave={smartMega.leave}
+            onWatchLeave={watchNav.leave}
+            onCableEnter={() => {
+              watchNav.close()
+              batteryNav.close()
+              cableNav.enter()
+            }}
+            onCableLeave={cableNav.leave}
             onBatteryEnter={() => {
-              smartMega.close()
+              watchNav.close()
+              cableNav.close()
               batteryNav.enter()
             }}
             onBatteryLeave={batteryNav.leave}
-            onMegaToggle={() => smartMega.toggle()}
+            onWatchToggle={() => watchNav.toggle()}
+            onCableToggle={() => cableNav.toggle()}
             onBatteryToggle={() => batteryNav.toggle()}
+            watchTriggerRef={watchTriggerRef}
+            cableTriggerRef={cableTriggerRef}
+            batteryTriggerRef={batteryTriggerRef}
             navigate={(to) => navigate(to)}
           />
         </div>
@@ -308,7 +328,7 @@ export default function Header() {
                     open={mobileSwOpen}
                     onToggle={() => setMobileSwOpen((v) => !v)}
                   >
-                    {[...smartWatchMegaGrid.top, ...smartWatchMegaGrid.bottom].map((item) => (
+                    {smartWatchesNavDropdownItems.map((item) => (
                       <MobileSubLink
                         key={item.slug}
                         to={item.to}
@@ -317,7 +337,20 @@ export default function Header() {
                       />
                     ))}
                   </MobileNavAccordion>
-                  <MobileNavLink to="/cables" label="Cables" onClick={() => setMobileNavOpen(false)} />
+                  <MobileNavAccordion
+                    label="Cables"
+                    open={mobileCablesOpen}
+                    onToggle={() => setMobileCablesOpen((v) => !v)}
+                  >
+                    {cablesNavDropdownItems.map((item) => (
+                      <MobileSubLink
+                        key={item.label}
+                        to={item.to}
+                        label={item.label}
+                        onClick={() => setMobileNavOpen(false)}
+                      />
+                    ))}
+                  </MobileNavAccordion>
                   <MobileNavAccordion
                     label="Batteries"
                     open={mobileBatteriesOpen}
@@ -361,17 +394,26 @@ export default function Header() {
           )
         : null}
 
-      <SmartWatchesMegaPanel
-        open={smartMega.open}
-        onEnter={smartMega.enter}
-        onLeave={smartMega.leave}
-        onClose={smartMega.close}
+      <SmartWatchesNavPanel
+        open={watchNav.open}
+        onEnter={watchNav.enter}
+        onLeave={watchNav.leave}
+        onClose={watchNav.close}
+        anchorRef={watchTriggerRef}
+      />
+      <CablesNavPanel
+        open={cableNav.open}
+        onEnter={cableNav.enter}
+        onLeave={cableNav.leave}
+        onClose={cableNav.close}
+        anchorRef={cableTriggerRef}
       />
       <BatteriesNavPanel
         open={batteryNav.open}
         onEnter={batteryNav.enter}
         onLeave={batteryNav.leave}
         onClose={batteryNav.close}
+        anchorRef={batteryTriggerRef}
       />
     </header>
   )

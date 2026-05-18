@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
-import { normalizeBatteryTypeSlug } from '../../data/batteryCategories'
-import { batteriesNavDropdownItems } from '../../data/batteriesNavDropdown'
+import { Link, useLocation } from 'react-router-dom'
 import { useNavDropdownAnchor } from '../../hooks/useNavDropdownAnchor'
+import { smartWatchesNavDropdownItems } from '../../data/smartWatchesNavDropdown'
 import { cn } from '../../utils/cn'
 
-const PANEL_WIDTH = 260
+const PANEL_WIDTH = 300
 
 /**
  * @param {{
@@ -16,10 +15,8 @@ const PANEL_WIDTH = 260
  *   anchorRef: React.RefObject<HTMLElement | null>
  * }} props
  */
-export function BatteriesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }) {
+export function SmartWatchesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }) {
   const location = useLocation()
-  const [searchParams] = useSearchParams()
-  const activeType = normalizeBatteryTypeSlug(searchParams.get('type'))
   const position = useNavDropdownAnchor(anchorRef, open, PANEL_WIDTH)
 
   if (!open) return null
@@ -32,10 +29,10 @@ export function BatteriesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }
         onClick={onClose}
       />
       <div
-        id="batteries-nav-dropdown-panel"
-        data-batteries-nav="panel"
+        id="smart-watches-nav-dropdown-panel"
+        data-smart-watches-nav="panel"
         role="menu"
-        aria-label="Battery categories"
+        aria-label="Smart watch categories"
         className="fixed z-50 max-h-[min(70vh,420px)] overflow-y-auto rounded-lg border border-app-border-subtle bg-app-card py-2 shadow-[0_12px_40px_-8px_rgba(0,0,0,0.25)] ring-1 ring-black/5"
         style={{
           top: position.top,
@@ -46,12 +43,10 @@ export function BatteriesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }
         onMouseLeave={onLeave}
       >
         <ul className="m-0 list-none p-0">
-          {batteriesNavDropdownItems.map((item) => {
-            const isActive =
-              location.pathname === '/batteries' &&
-              normalizeBatteryTypeSlug(item.type) === activeType
+          {smartWatchesNavDropdownItems.map((item) => {
+            const isActive = location.pathname === item.to
             return (
-              <li key={item.label} role="none">
+              <li key={item.slug} role="none">
                 <Link
                   role="menuitem"
                   to={item.to}
@@ -74,7 +69,7 @@ export function BatteriesNavPanel({ open, onEnter, onLeave, onClose, anchorRef }
   )
 }
 
-export function useBatteriesNavMenu() {
+export function useSmartWatchesNavMenu() {
   const [open, setOpen] = useState(false)
   const leaveTimerRef = useRef(null)
 
@@ -114,7 +109,7 @@ export function useBatteriesNavMenu() {
     if (!open) return undefined
     function onDocDown(e) {
       const t = e.target
-      if (t instanceof Node && !t.closest?.('[data-batteries-nav]')) close()
+      if (t instanceof Node && !t.closest?.('[data-smart-watches-nav]')) close()
     }
     function onKey(e) {
       if (e.key === 'Escape') close()

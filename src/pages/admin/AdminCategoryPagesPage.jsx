@@ -13,6 +13,9 @@ import {
 import AdminProductGalleryFields from '../../components/admin/AdminProductGalleryFields'
 import { uploadAdminImage } from '../../utils/uploadAdminImage'
 import { patchProductMainImage } from '../../utils/productGallery'
+import { batteryCategories } from '../../data/batteryCategories'
+import { cableCategories } from '../../data/cableCategories'
+import { smartWatchCategories } from '../../data/smartWatchCategories'
 import { adminCardClass, adminCardMetaClass, adminInputClass } from './adminFieldClasses'
 import { AdminFlash, AdminPageHeader, AdminSegmentedTabs } from './AdminUi'
 
@@ -31,7 +34,13 @@ function cloneBundle(bundle) {
 }
 
 /** @returns {import('../../data/products').Product} */
-function emptyProduct() {
+/**
+ * @param {{ defaultCableType?: string; defaultBatteryType?: string; defaultWatchCategory?: string }} [opts]
+ */
+function emptyProduct(opts) {
+  const defaultCableType = opts?.defaultCableType
+  const defaultBatteryType = opts?.defaultBatteryType
+  const defaultWatchCategory = opts?.defaultWatchCategory
   return {
     id: `new-${Date.now()}`,
     title: 'New product',
@@ -39,6 +48,9 @@ function emptyProduct() {
     price: 99,
     rating: 4,
     reviews: 0,
+    ...(defaultCableType ? { cableType: defaultCableType } : {}),
+    ...(defaultBatteryType ? { batteryType: defaultBatteryType } : {}),
+    ...(defaultWatchCategory ? { watchCategory: defaultWatchCategory } : {}),
   }
 }
 
@@ -173,6 +185,18 @@ function normalizeCatalogProductSave(p) {
     ? p.gallery.map((s) => String(s).trim()).filter(Boolean)
     : []
   if (gallery.length > 1) next.gallery = gallery
+  const cableType = typeof p.cableType === 'string' ? p.cableType.trim().toLowerCase() : ''
+  if (cableType && cableType !== 'all' && cableCategories.some((c) => c.slug === cableType)) {
+    next.cableType = cableType
+  }
+  const batteryType = typeof p.batteryType === 'string' ? p.batteryType.trim().toLowerCase() : ''
+  if (batteryType && batteryType !== 'all' && batteryCategories.some((c) => c.slug === batteryType)) {
+    next.batteryType = batteryType
+  }
+  const watchCategory = typeof p.watchCategory === 'string' ? p.watchCategory.trim().toLowerCase() : ''
+  if (watchCategory && smartWatchCategories.some((c) => c.slug === watchCategory)) {
+    next.watchCategory = watchCategory
+  }
   return next
 }
 
@@ -342,6 +366,47 @@ export default function AdminCategoryPagesPage() {
     return parts.length ? parts : undefined
   }
 
+  /**
+   * @param {Record<string, ReturnType<typeof cloneBundle>>} map
+   * @param {string} slug
+   */
+  function persistSmartWatchBundle(map, slug) {
+    const err = validateCategoryDraft('smart-watches', cables, batteries, slug, map, map[slug])
+    if (err) {
+      setError(err)
+      setMessage('')
+      return false
+    }
+    setMergedSmartWatchCategoryPage(slug, buildNormalizedCategoryBundle(map[slug]))
+    return true
+  }
+
+  /** @param {number} productIndex @param {string} targetSlug */
+  function moveProductWatchCategory(productIndex, targetSlug) {
+    if (targetSlug === swSlug) return
+    setError('')
+    setMessage('')
+    const source = swDrafts[swSlug]
+    const product = source.products[productIndex]
+    if (!product) return
+    const nextMap = {
+      ...swDrafts,
+      [swSlug]: {
+        ...source,
+        products: source.products.filter((_, i) => i !== productIndex),
+      },
+      [targetSlug]: {
+        ...swDrafts[targetSlug],
+        products: [...swDrafts[targetSlug].products, { ...product, watchCategory: targetSlug }],
+      },
+    }
+    setSwDrafts(nextMap)
+    const label = smartWatchCategoryMeta[targetSlug]?.title ?? targetSlug
+    if (persistSmartWatchBundle(nextMap, swSlug) && persistSmartWatchBundle(nextMap, targetSlug)) {
+      setMessage(`Product moved to “${label}” and saved.`)
+    }
+  }
+
   function handleSave() {
     setError('')
     setMessage('')
@@ -369,13 +434,6 @@ export default function AdminCategoryPagesPage() {
     { key: 'smart-watches', label: 'Smart Watches' },
   ])
 
-  const swSlugTabs = SMART_WATCH_CATEGORY_SLUGS.map((slug) => ({
-    key: slug,
-    label:
-      smartWatchCategoryMeta[slug]?.title?.split(/\s+/)[0] ??
-      slug.charAt(0).toUpperCase() + slug.slice(1),
-  }))
-
   const saveButtonLabel =
     tab === 'cables' ? 'Cables' : tab === 'batteries' ? 'Batteries' : `Smart watches · ${swSlug}`
 
@@ -402,15 +460,30 @@ export default function AdminCategoryPagesPage() {
       </div>
 
       {isSmartWatches ? (
-        <div className="mt-4">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-exclusive-muted">
+        <div className="mt-4 max-w-xl">
+          <label htmlFor={`${baseId}-sw-route`} className="mb-2 block text-sm font-medium text-exclusive-dark">
             Watch category route
+          </label>
+          <select
+            id={`${baseId}-sw-route`}
+            className={adminInputClass}
+            value={swSlug}
+            onChange={(e) => {
+              setSwSlug(/** @type {(typeof SMART_WATCH_CATEGORY_SLUGS)[number]} */ (e.target.value))
+              setMessage('')
+              setError('')
+            }}
+          >
+            {smartWatchCategories.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1.5 text-xs text-exclusive-muted">
+            Same list as the Smart Watches dropdown in the storefront header — hero and products for{' '}
+            <span className="font-medium text-exclusive-dark">/smart-watches/{swSlug}</span>.
           </p>
-          <AdminSegmentedTabs
-            activeKey={swSlug}
-            onChange={(k) => setSwSlug(/** @type {(typeof SMART_WATCH_CATEGORY_SLUGS)[number]} */ (k))}
-            tabs={swSlugTabs}
-          />
         </div>
       ) : null}
 
@@ -708,6 +781,106 @@ export default function AdminCategoryPagesPage() {
               </div>
             </div>
 
+            {isCables ? (
+              <div className="mt-4">
+                <label
+                  htmlFor={`${baseId}-ctype-${editKey}-${index}`}
+                  className="mb-2 block text-sm font-medium text-exclusive-dark"
+                >
+                  Cable menu category
+                </label>
+                <select
+                  id={`${baseId}-ctype-${editKey}-${index}`}
+                  className={adminInputClass}
+                  value={product.cableType ?? 'usb-c'}
+                  onChange={(e) =>
+                    patchDraft((p) => ({
+                      ...p,
+                      products: p.products.map((x, i) =>
+                        i === index ? { ...x, cableType: e.target.value } : x,
+                      ),
+                    }))
+                  }
+                >
+                  {cableCategories
+                    .filter((c) => c.slug !== 'all')
+                    .map((c) => (
+                      <option key={c.slug} value={c.slug}>
+                        {c.label}
+                      </option>
+                    ))}
+                </select>
+                <p className="mt-1.5 text-xs text-exclusive-muted">
+                  Matches the Cables dropdown in the header — only this type shows when that menu item is
+                  clicked.
+                </p>
+              </div>
+            ) : null}
+
+            {isBatteries ? (
+              <div className="mt-4">
+                <label
+                  htmlFor={`${baseId}-btype-${editKey}-${index}`}
+                  className="mb-2 block text-sm font-medium text-exclusive-dark"
+                >
+                  Battery menu category
+                </label>
+                <select
+                  id={`${baseId}-btype-${editKey}-${index}`}
+                  className={adminInputClass}
+                  value={product.batteryType ?? 'iphone'}
+                  onChange={(e) =>
+                    patchDraft((p) => ({
+                      ...p,
+                      products: p.products.map((x, i) =>
+                        i === index ? { ...x, batteryType: e.target.value } : x,
+                      ),
+                    }))
+                  }
+                >
+                  {batteryCategories
+                    .filter((c) => c.slug !== 'all')
+                    .map((c) => (
+                      <option key={c.slug} value={c.slug}>
+                        {c.label}
+                      </option>
+                    ))}
+                </select>
+                <p className="mt-1.5 text-xs text-exclusive-muted">
+                  Matches the Batteries dropdown in the header — only this type shows when that menu item is
+                  clicked.
+                </p>
+              </div>
+            ) : null}
+
+            {isSmartWatches ? (
+              <div className="mt-4">
+                <label
+                  htmlFor={`${baseId}-wcat-${editKey}-${index}`}
+                  className="mb-2 block text-sm font-medium text-exclusive-dark"
+                >
+                  Watch menu category
+                </label>
+                <select
+                  id={`${baseId}-wcat-${editKey}-${index}`}
+                  className={adminInputClass}
+                  value={product.watchCategory ?? swSlug}
+                  onChange={(e) => moveProductWatchCategory(index, e.target.value)}
+                >
+                  {smartWatchCategories.map((c) => (
+                    <option key={c.slug} value={c.slug}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1.5 text-xs text-exclusive-muted">
+                  Matches the Smart Watches dropdown in the header — product appears on{' '}
+                  <span className="font-medium text-exclusive-dark">/smart-watches/…</span> for the chosen
+                  category.
+                </p>
+              </div>
+            ) : null}
+
             <div className="mt-4">
               <label htmlFor={`${baseId}-pimg-${editKey}-${index}`} className="mb-2 block text-sm font-medium text-exclusive-dark">
                 Image URL
@@ -946,7 +1119,27 @@ export default function AdminCategoryPagesPage() {
       </section>
 
       <div className="mt-12 flex flex-wrap items-center gap-3 border-t border-app-border-subtle pt-10">
-        <Button type="button" variant="outline" onClick={() => patchDraft((p) => ({ ...p, products: [...p.products, emptyProduct()] }))}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() =>
+            patchDraft((p) => ({
+              ...p,
+              products: [
+                ...p.products,
+                emptyProduct(
+                  isCables
+                    ? { defaultCableType: 'usb-c' }
+                    : isBatteries
+                      ? { defaultBatteryType: 'iphone' }
+                      : isSmartWatches
+                        ? { defaultWatchCategory: swSlug }
+                        : undefined,
+                ),
+              ],
+            }))
+          }
+        >
           Add product
         </Button>
         <Button

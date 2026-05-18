@@ -3,13 +3,25 @@ import { gsap } from 'gsap'
 import { useLocation } from 'react-router-dom'
 import { getSparkleActiveInnerHTML } from './sparkleNavbarMarkup'
 
-/** @typedef {{ label: string, to?: string, mega?: boolean, batteryDropdown?: boolean }} NavEntry */
+/** @typedef {{ label: string, to?: string, watchDropdown?: boolean, cableDropdown?: boolean, batteryDropdown?: boolean }} NavEntry */
 
-function navIndexFromPath(entries, pathname, megaOpen, batteryOpen) {
+/** @param {NavEntry} entry */
+function navDropdownKind(entry) {
+  if (entry.watchDropdown) return 'watch'
+  if (entry.cableDropdown) return 'cable'
+  if (entry.batteryDropdown) return 'battery'
+  return null
+}
+
+function navIndexFromPath(entries, pathname, watchOpen, cableOpen, batteryOpen) {
   for (let i = 0; i < entries.length; i++) {
     const e = entries[i]
-    if (e.mega) {
-      if (pathname.startsWith('/smart-watches') || megaOpen) return i
+    if (e.watchDropdown) {
+      if (pathname.startsWith('/smart-watches') || watchOpen) return i
+      continue
+    }
+    if (e.cableDropdown) {
+      if (pathname.startsWith('/cables') || cableOpen) return i
       continue
     }
     if (e.batteryDropdown) {
@@ -31,37 +43,51 @@ function navIndexFromPath(entries, pathname, megaOpen, batteryOpen) {
  * @param {{
  *   entries: NavEntry[],
  *   color?: string,
- *   megaPanelOpen?: boolean,
+ *   watchPanelOpen?: boolean,
+ *   cablePanelOpen?: boolean,
  *   batteryPanelOpen?: boolean,
- *   onMegaEnter?: () => void,
- *   onMegaLeave?: () => void,
+ *   onWatchEnter?: () => void,
+ *   onWatchLeave?: () => void,
+ *   onCableEnter?: () => void,
+ *   onCableLeave?: () => void,
  *   onBatteryEnter?: () => void,
  *   onBatteryLeave?: () => void,
  *   navigate: (to: string) => void,
- *   onMegaToggle?: () => void,
+ *   onWatchToggle?: () => void,
+ *   onCableToggle?: () => void,
  *   onBatteryToggle?: () => void,
+ *   watchTriggerRef?: React.RefObject<HTMLButtonElement | null>,
+ *   cableTriggerRef?: React.RefObject<HTMLButtonElement | null>,
+ *   batteryTriggerRef?: React.RefObject<HTMLButtonElement | null>,
  * }} props
  */
 export default function SparkleNavbar({
   entries,
   color = '#db4444',
-  megaPanelOpen = false,
+  watchPanelOpen = false,
+  cablePanelOpen = false,
   batteryPanelOpen = false,
-  onMegaEnter,
-  onMegaLeave,
+  onWatchEnter,
+  onWatchLeave,
+  onCableEnter,
+  onCableLeave,
   onBatteryEnter,
   onBatteryLeave,
   navigate,
-  onMegaToggle,
+  onWatchToggle,
+  onCableToggle,
   onBatteryToggle,
+  watchTriggerRef,
+  cableTriggerRef,
+  batteryTriggerRef,
   className = '',
 }) {
   const location = useLocation()
   const labels = entries.map((e) => e.label)
 
   const derivedIndex = useMemo(
-    () => navIndexFromPath(entries, location.pathname, megaPanelOpen, batteryPanelOpen),
-    [entries, location.pathname, megaPanelOpen, batteryPanelOpen],
+    () => navIndexFromPath(entries, location.pathname, watchPanelOpen, cablePanelOpen, batteryPanelOpen),
+    [entries, location.pathname, watchPanelOpen, cablePanelOpen, batteryPanelOpen],
   )
 
   const [activeIndex, setActiveIndex] = useState(derivedIndex)
@@ -223,8 +249,10 @@ export default function SparkleNavbar({
   const handleClick = (/** @type {number} */ index) => {
     const entry = entries[index]
     if (index === activeIndex) {
-      if (entry?.mega) onMegaToggle?.()
-      else if (entry?.batteryDropdown) onBatteryToggle?.()
+      const kind = entry ? navDropdownKind(entry) : null
+      if (kind === 'watch') onWatchToggle?.()
+      else if (kind === 'cable') onCableToggle?.()
+      else if (kind === 'battery') onBatteryToggle?.()
       return
     }
 
@@ -287,8 +315,10 @@ export default function SparkleNavbar({
               '--active-element-show': '1',
             })
             setActiveIndex(index)
-            if (entries[index]?.mega) onMegaToggle?.()
-            else if (entries[index]?.batteryDropdown) onBatteryToggle?.()
+            const kind = entries[index] ? navDropdownKind(entries[index]) : null
+            if (kind === 'watch') onWatchToggle?.()
+            else if (kind === 'cable') onCableToggle?.()
+            else if (kind === 'battery') onBatteryToggle?.()
             else if (entries[index]?.to) navigate(entries[index].to)
           },
         },
@@ -309,41 +339,65 @@ export default function SparkleNavbar({
       <nav className={`navigation-menu ${className}`.trim()} ref={navRef} aria-label="Main">
         <ul>
           {labels.map((item, index) => {
-            const mega = !!entries[index]?.mega
-            const battery = !!entries[index]?.batteryDropdown
-            const hoverEnter = mega ? onMegaEnter : battery ? onBatteryEnter : undefined
-            const hoverLeave = mega ? onMegaLeave : battery ? onBatteryLeave : undefined
+            const kind = entries[index] ? navDropdownKind(entries[index]) : null
+            const hoverEnter =
+              kind === 'watch'
+                ? onWatchEnter
+                : kind === 'cable'
+                  ? onCableEnter
+                  : kind === 'battery'
+                    ? onBatteryEnter
+                    : undefined
+            const hoverLeave =
+              kind === 'watch'
+                ? onWatchLeave
+                : kind === 'cable'
+                  ? onCableLeave
+                  : kind === 'battery'
+                    ? onBatteryLeave
+                    : undefined
+            const panelOpen =
+              kind === 'watch' ? watchPanelOpen : kind === 'cable' ? cablePanelOpen : kind === 'battery' ? batteryPanelOpen : false
             return (
               <li
                 key={item}
                 className={index === activeIndex ? 'active' : ''}
-                {...(mega || battery
+                {...(kind
                   ? {
                       onMouseEnter: hoverEnter,
                       onMouseLeave: hoverLeave,
-                      ...(battery ? { 'data-batteries-nav': 'trigger' } : {}),
+                      ...(kind === 'watch' ? { 'data-smart-watches-nav': 'trigger' } : {}),
+                      ...(kind === 'cable' ? { 'data-cables-nav': 'trigger' } : {}),
+                      ...(kind === 'battery' ? { 'data-batteries-nav': 'trigger' } : {}),
                     }
                   : {})}
               >
                 <button
                   type="button"
-                  aria-expanded={
-                    mega ? megaPanelOpen : battery ? batteryPanelOpen : undefined
-                  }
-                  aria-haspopup={mega || battery ? 'true' : undefined}
+                  aria-expanded={kind ? panelOpen : undefined}
+                  aria-haspopup={kind ? 'true' : undefined}
                   aria-controls={
-                    mega ? 'smart-watches-mega-panel' : battery ? 'batteries-nav-dropdown-panel' : undefined
+                    kind === 'watch'
+                      ? 'smart-watches-nav-dropdown-panel'
+                      : kind === 'cable'
+                        ? 'cables-nav-dropdown-panel'
+                        : kind === 'battery'
+                          ? 'batteries-nav-dropdown-panel'
+                          : undefined
                   }
                   ref={(el) => {
                     buttonRefs.current[index] = el
+                    if (kind === 'watch' && watchTriggerRef) watchTriggerRef.current = el
+                    if (kind === 'cable' && cableTriggerRef) cableTriggerRef.current = el
+                    if (kind === 'battery' && batteryTriggerRef) batteryTriggerRef.current = el
                   }}
                   onClick={() => handleClick(index)}
                 >
                   {item}
-                  {mega || battery ? (
+                  {kind ? (
                     <svg
                       className={`ml-1 inline h-4 w-4 opacity-70 transition md:rotate-0 ${
-                        mega ? megaPanelOpen : batteryPanelOpen ? 'rotate-180' : ''
+                        panelOpen ? 'rotate-180' : ''
                       }`}
                       viewBox="0 0 24 24"
                       fill="none"
