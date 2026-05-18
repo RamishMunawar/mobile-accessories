@@ -10,7 +10,9 @@ import {
   setMergedBatteriesPage,
   setMergedSmartWatchCategoryPage,
 } from '../../site/siteStore'
+import AdminProductGalleryFields from '../../components/admin/AdminProductGalleryFields'
 import { uploadAdminImage } from '../../utils/uploadAdminImage'
+import { patchProductMainImage } from '../../utils/productGallery'
 import { adminCardClass, adminCardMetaClass, adminInputClass } from './adminFieldClasses'
 import { AdminFlash, AdminPageHeader, AdminSegmentedTabs } from './AdminUi'
 
@@ -167,6 +169,10 @@ function normalizeCatalogProductSave(p) {
   if (p.badge === 'new' || p.badge === 'sale' || p.badge === 'sold-out') next.badge = p.badge
   if (p.colors?.length) next.colors = p.colors
   if (p.freeShip === true) next.freeShip = true
+  const gallery = Array.isArray(p.gallery)
+    ? p.gallery.map((s) => String(s).trim()).filter(Boolean)
+    : []
+  if (gallery.length > 1) next.gallery = gallery
   return next
 }
 
@@ -713,7 +719,9 @@ export default function AdminCategoryPagesPage() {
                 onChange={(e) =>
                   patchDraft((p) => ({
                     ...p,
-                    products: p.products.map((x, i) => (i === index ? { ...x, image: e.target.value } : x)),
+                    products: p.products.map((x, i) =>
+                      i === index ? { ...x, ...patchProductMainImage(x, e.target.value) } : x,
+                    ),
                   }))
                 }
               />
@@ -731,7 +739,9 @@ export default function AdminCategoryPagesPage() {
                       const url = await uploadAdminImage(file)
                       patchDraft((p) => ({
                         ...p,
-                        products: p.products.map((x, i) => (i === index ? { ...x, image: url } : x)),
+                        products: p.products.map((x, i) =>
+                          i === index ? { ...x, ...patchProductMainImage(x, url) } : x,
+                        ),
                       }))
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Upload failed')
@@ -740,6 +750,19 @@ export default function AdminCategoryPagesPage() {
                 />
               </label>
             </div>
+
+            <AdminProductGalleryFields
+              fieldIdPrefix={`${editKey}-p-${index}`}
+              gallery={product.gallery}
+              image={product.image}
+              onChange={(patch) =>
+                patchDraft((p) => ({
+                  ...p,
+                  products: p.products.map((x, i) => (i === index ? { ...x, ...patch } : x)),
+                }))
+              }
+              onError={setError}
+            />
 
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>

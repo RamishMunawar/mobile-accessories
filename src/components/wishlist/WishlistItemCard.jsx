@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { formatPrice } from '../../utils/formatPrice'
 import { isProductSoldOut } from '../product/ProductBadge'
 import { IconCart, IconTrash } from '../ui/Icons'
 
@@ -89,9 +90,9 @@ export default function WishlistItemCard({
           {title}
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          <span className="text-lg font-semibold text-exclusive-red">${price}</span>
+          <span className="text-lg font-semibold text-exclusive-red">{formatPrice(price)}</span>
           {oldPrice ? (
-            <span className="text-sm text-exclusive-muted line-through">${oldPrice}</span>
+            <span className="text-sm text-exclusive-muted line-through">{formatPrice(oldPrice)}</span>
           ) : null}
         </div>
       </div>

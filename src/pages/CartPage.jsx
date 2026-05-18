@@ -4,6 +4,7 @@ import CartLineRow from '../components/cart/CartLineRow'
 import { Button, ButtonLink } from '../components/ui/Button'
 import { useCart } from '../context/CartContext'
 import { useProductIndex } from '../hooks/useProductIndex'
+import { formatPrice } from '../utils/formatPrice'
 
 export default function CartPage() {
   const productIndex = useProductIndex()
@@ -115,12 +116,12 @@ export default function CartPage() {
             <div className="mt-6 space-y-4 text-base">
               <div className="flex justify-between gap-4">
                 <span className="text-exclusive-muted">Subtotal:</span>
-                <span className="font-medium">${subtotal}</span>
+                <span className="font-medium">{formatPrice(subtotal)}</span>
               </div>
               {couponApplied ? (
                 <div className="flex justify-between gap-4 text-exclusive-green">
                   <span>Discount:</span>
-                  <span>−${discount}</span>
+                  <span>−{formatPrice(discount)}</span>
                 </div>
               ) : null}
               <div className="flex justify-between gap-4">
@@ -130,7 +131,7 @@ export default function CartPage() {
               <div className="border-t border-app-border pt-4">
                 <div className="flex justify-between gap-4 text-lg font-semibold">
                   <span>Total:</span>
-                  <span>${total}</span>
+                  <span>{formatPrice(total)}</span>
                 </div>
               </div>
             </div>

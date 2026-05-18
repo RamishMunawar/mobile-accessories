@@ -1,7 +1,9 @@
 import { useId, useState } from 'react'
 import { Button } from '../../components/ui/Button'
 import { getMergedProducts, setMergedProducts } from '../../site/siteStore'
+import AdminProductGalleryFields from '../../components/admin/AdminProductGalleryFields'
 import { uploadAdminImage } from '../../utils/uploadAdminImage'
+import { patchProductMainImage } from '../../utils/productGallery'
 import { adminCardClass, adminCardMetaClass, adminInputClass } from './adminFieldClasses'
 import { AdminFlash, AdminPageHeader, AdminSegmentedTabs } from './AdminUi'
 
@@ -25,6 +27,7 @@ function cloneProduct(p) {
   return {
     ...p,
     colors: p.colors ? [...p.colors] : undefined,
+    gallery: p.gallery ? [...p.gallery] : undefined,
   }
 }
 
@@ -179,7 +182,7 @@ export default function AdminProductsPage() {
                 id={`${baseId}-img-${tab}-${index}`}
                 className={adminInputClass}
                 value={product.image}
-                onChange={(e) => updateAt(index, { image: e.target.value })}
+                onChange={(e) => updateAt(index, patchProductMainImage(product, e.target.value))}
               />
               <label className="mt-3 flex cursor-pointer flex-wrap items-center gap-3 text-sm text-exclusive-muted">
                 <span className="font-medium text-exclusive-dark">Or upload</span>
@@ -193,7 +196,7 @@ export default function AdminProductsPage() {
                     if (!file) return
                     try {
                       const url = await uploadAdminImage(file)
-                      updateAt(index, { image: url })
+                      updateAt(index, patchProductMainImage(product, url))
                     } catch (err) {
                       setError(err instanceof Error ? err.message : 'Upload failed')
                     }
@@ -202,13 +205,21 @@ export default function AdminProductsPage() {
               </label>
             </div>
 
+            <AdminProductGalleryFields
+              fieldIdPrefix={`${tab}-${index}`}
+              gallery={product.gallery}
+              image={product.image}
+              onChange={(patch) => updateAt(index, patch)}
+              onError={setError}
+            />
+
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
                 <label
                   htmlFor={`${baseId}-price-${tab}-${index}`}
                   className="mb-2 block text-sm font-medium text-exclusive-dark"
                 >
-                  Price
+                  Price (PKR)
                 </label>
                 <input
                   id={`${baseId}-price-${tab}-${index}`}
@@ -225,7 +236,7 @@ export default function AdminProductsPage() {
                   htmlFor={`${baseId}-old-${tab}-${index}`}
                   className="mb-2 block text-sm font-medium text-exclusive-dark"
                 >
-                  Old price (optional)
+                  Old price PKR (optional)
                 </label>
                 <input
                   id={`${baseId}-old-${tab}-${index}`}
@@ -392,5 +403,9 @@ function normalizeProduct(p) {
   if (p.badge === 'new' || p.badge === 'sale' || p.badge === 'sold-out') next.badge = p.badge
   if (p.colors?.length) next.colors = p.colors
   if (p.freeShip === true) next.freeShip = true
+  const gallery = Array.isArray(p.gallery)
+    ? p.gallery.map((s) => String(s).trim()).filter(Boolean)
+    : []
+  if (gallery.length > 1) next.gallery = gallery
   return next
 }

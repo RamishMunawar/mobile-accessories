@@ -5,6 +5,7 @@ import { IconButton } from '../ui/IconButton'
 import { IconCart, IconEye, IconHeart } from '../ui/Icons'
 import Stars from '../ui/Stars'
 import { cn } from '../../utils/cn'
+import { formatPrice } from '../../utils/formatPrice'
 import { useProductReviewStats } from '../../hooks/useProductReviewStats'
 import { isProductSoldOut, ProductBadge } from './ProductBadge'
 
@@ -136,9 +137,9 @@ export default function ProductCard({
           )}
         </h3>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-base font-semibold text-exclusive-red">${price}</span>
+          <span className="text-base font-semibold text-exclusive-red">{formatPrice(price)}</span>
           {oldPrice ? (
-            <span className="text-sm text-exclusive-muted line-through">${oldPrice}</span>
+            <span className="text-sm text-exclusive-muted line-through">{formatPrice(oldPrice)}</span>
           ) : null}
         </div>
         {colors?.length ? (

@@ -28,7 +28,7 @@ export default function ProductGallery({ images, title }) {
               active === i ? 'ring-exclusive-red' : 'hover:ring-app-border',
             ].join(' ')}
           >
-            <img src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
+            <img src={src} alt="" className="h-full w-full object-contain bg-app-muted p-1" loading="lazy" />
           </button>
         ))}
       </div>

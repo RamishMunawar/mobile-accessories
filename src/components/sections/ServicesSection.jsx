@@ -1,10 +1,11 @@
 import { IconDelivery, IconHeadset, IconShield } from '../ui/Icons'
+import { formatPrice } from '../../utils/formatPrice'
 
 const items = [
   {
     icon: IconDelivery,
     title: 'FREE AND FAST DELIVERY',
-    text: 'Free delivery for all orders over $140',
+    text: `Free delivery for all orders over ${formatPrice(5000)}`,
   },
   {
     icon: IconHeadset,

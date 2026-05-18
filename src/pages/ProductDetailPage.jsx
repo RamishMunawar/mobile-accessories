@@ -18,6 +18,7 @@ import { relatedProducts } from '../data/productCatalog'
 import { useProductIndex } from '../hooks/useProductIndex'
 import { resolveProductDetail } from '../data/productDetails'
 import { cn } from '../utils/cn'
+import { formatPrice } from '../utils/formatPrice'
 
 export default function ProductDetailPage() {
   const navigate = useNavigate()
@@ -92,14 +93,16 @@ export default function ProductDetailPage() {
 
           <div className="mt-6 border-y border-app-border py-6">
             <p className="font-display text-2xl font-medium">
-              <span className="text-exclusive-red">${lineTotal}</span>
+              <span className="text-exclusive-red">{formatPrice(lineTotal)}</span>
               {lineOldTotal != null ? (
-                <span className="ml-2 text-xl font-normal text-exclusive-muted line-through">${lineOldTotal}</span>
+                <span className="ml-2 text-xl font-normal text-exclusive-muted line-through">
+                  {formatPrice(lineOldTotal)}
+                </span>
               ) : null}
             </p>
             {qty > 1 ? (
               <p className="mt-2 text-sm text-exclusive-muted">
-                ${base.price} each × {qty}
+                {formatPrice(base.price)} each × {qty}
               </p>
             ) : null}
           </div>

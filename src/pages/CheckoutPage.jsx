@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { useProductIndex } from '../hooks/useProductIndex'
+import { formatPrice } from '../utils/formatPrice'
 import { readCartLinesFromStorage } from '../utils/readCartLines'
 
 const inputClass =
@@ -202,11 +203,11 @@ export default function CheckoutPage() {
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-2 text-sm font-medium">{line.product.title}</p>
                       <p className="mt-1 text-sm text-exclusive-muted">
-                        {line.qty} × ${line.product.price}
+                        {line.qty} × {formatPrice(line.product.price)}
                       </p>
                     </div>
                     <span className="shrink-0 text-sm font-semibold">
-                      ${line.product.price * line.qty}
+                      {formatPrice(line.product.price * line.qty)}
                     </span>
                   </li>
                 ))
@@ -215,7 +216,7 @@ export default function CheckoutPage() {
             <div className="mt-6 space-y-4 text-base">
               <div className="flex justify-between gap-4">
                 <span className="text-exclusive-muted">Subtotal:</span>
-                <span className="font-medium">${subtotal}</span>
+                <span className="font-medium">{formatPrice(subtotal)}</span>
               </div>
               <div className="flex justify-between gap-4">
                 <span className="text-exclusive-muted">Shipping:</span>
@@ -224,7 +225,7 @@ export default function CheckoutPage() {
               <div className="border-t border-app-border pt-4">
                 <div className="flex justify-between gap-4 text-lg font-semibold">
                   <span>Total:</span>
-                  <span>${total}</span>
+                  <span>{formatPrice(total)}</span>
                 </div>
               </div>
             </div>

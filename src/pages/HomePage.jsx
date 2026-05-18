@@ -5,9 +5,7 @@ import BrandPromoRowSection from '../components/sections/BrandPromoRowSection'
 import CategorySection from '../components/sections/CategorySection'
 import ThreeDCarousel from '../components/sections/ThreeDCarousel'
 import BestSellingSection from '../components/sections/BestSellingSection'
-import ModelViewerSection from '../components/sections/ModelViewerSection'
 import PromoBannerSection from '../components/sections/PromoBannerSection'
-import ExploreProductsSection from '../components/sections/ExploreProductsSection'
 import FeaturedArrivalSection from '../components/sections/FeaturedArrivalSection'
 import ReviewsSection from '../components/sections/ReviewsSection'
 import ServicesSection from '../components/sections/ServicesSection'
@@ -28,9 +26,7 @@ export default function HomePage() {
         <ThreeDCarousel />
       </section>
       <BestSellingSection />
-      <ModelViewerSection />
       <PromoBannerSection />
-      <ExploreProductsSection />
       <FeaturedArrivalSection />
       <ReviewsSection />
       <ServicesSection />

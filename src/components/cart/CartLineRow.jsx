@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { formatPrice } from '../../utils/formatPrice'
 import ProductReviewForm from '../product/ProductReviewForm'
 import { IconTrash } from '../ui/Icons'
 
@@ -52,7 +53,7 @@ export default function CartLineRow({ product, qty, onQtyChange, onRemove }) {
 
         <div className="flex items-center justify-between md:block md:text-center">
           <span className="text-sm text-exclusive-muted md:hidden">Price</span>
-          <span className="font-medium">${product.price}</span>
+          <span className="font-medium">{formatPrice(product.price)}</span>
         </div>
 
         <div className="flex items-center justify-between gap-4 md:justify-center">
@@ -83,7 +84,7 @@ export default function CartLineRow({ product, qty, onQtyChange, onRemove }) {
 
         <div className="flex items-center justify-between md:text-center">
           <span className="text-sm text-exclusive-muted md:hidden">Subtotal</span>
-          <span className="font-medium">${lineTotal}</span>
+          <span className="font-medium">{formatPrice(lineTotal)}</span>
         </div>
 
         <div className="hidden md:flex md:justify-end">

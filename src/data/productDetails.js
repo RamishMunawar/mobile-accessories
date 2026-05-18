@@ -66,8 +66,17 @@ export const productDetailExtras = {
  */
 export function resolveProductDetail(productId, base) {
   const extra = productDetailExtras[productId]
+  const adminGallery = Array.isArray(base?.gallery)
+    ? base.gallery.map((s) => String(s).trim()).filter(Boolean)
+    : []
   const gallery =
-    extra?.gallery ?? (base?.image ? [base.image, base.image, base.image] : [])
+    adminGallery.length > 0
+      ? adminGallery
+      : extra?.gallery?.length
+        ? extra.gallery
+        : base?.image
+          ? [base.image]
+          : []
   const trail =
     extra?.trail ??
     (base?.title ? ['Home', base.title] : ['Home', 'Product'])
