@@ -1,8 +1,40 @@
+import { useEffect, useState } from 'react'
+import { hydrateSiteFromApi } from '../../api/hydrateSite'
+import { pingApi } from '../../api/client'
 import { Button } from '../../components/ui/Button'
+import { getApiBaseUrl, isApiConfigured } from '../../config/env'
 import { clearSiteOverrides } from '../../site/siteStore'
 import { AdminDashLinkCard, AdminPageHeader } from './AdminUi'
 
 export default function AdminDashboardPage() {
+  const apiBase = getApiBaseUrl()
+  const [apiStatus, setApiStatus] = useState(/** @type {'idle' | 'checking' | 'ok' | 'error'} */ ('idle'))
+  const [apiMessage, setApiMessage] = useState('')
+  const [hydrateMsg, setHydrateMsg] = useState('')
+
+  useEffect(() => {
+    if (!isApiConfigured()) return
+    setApiStatus('checking')
+    pingApi().then((r) => {
+      setApiStatus(r.ok ? 'ok' : 'error')
+      setApiMessage(r.ok ? `Connected (${apiBase})` : r.error ?? 'Unreachable')
+    })
+  }, [apiBase])
+
+  async function handleSyncFromApi() {
+    setHydrateMsg('')
+    const result = await hydrateSiteFromApi()
+    if (result.ok) {
+      setHydrateMsg(
+        result.applied.length
+          ? `Synced from API: ${result.applied.join(', ')}`
+          : 'API reachable but no known CMS routes returned data.',
+      )
+    } else {
+      setHydrateMsg(result.error ?? 'Sync failed')
+    }
+  }
+
   return (
     <div>
       <AdminPageHeader
@@ -10,16 +42,44 @@ export default function AdminDashboardPage() {
         title="Overview"
         description={
           <>
-            Changes apply immediately on the public site in this browser. Image uploads are saved under{' '}
-            <span className="font-medium text-exclusive-dark">public/uploads</span> (paths like{' '}
-            <span className="font-medium text-exclusive-dark">/uploads/…</span>) while{' '}
-            <span className="font-medium text-exclusive-dark">npm run dev</span> is running; other content
-            is stored in <span className="font-medium text-exclusive-dark">localStorage</span>.
+            When <span className="font-medium text-exclusive-dark">VITE_API_BASE_URL</span> is set, the app loads
+            CMS data from your backend into this browser. Saves in admin still use localStorage until write APIs are
+            wired.
           </>
         }
       />
 
-      <ul className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      {isApiConfigured() ? (
+        <section className="mt-6 rounded-2xl border border-app-border-subtle bg-app-muted/30 px-4 py-4 sm:px-5">
+          <p className="text-sm font-medium text-exclusive-dark">Backend API</p>
+          <p className="mt-1 font-mono text-xs text-exclusive-muted break-all">{apiBase}</p>
+          <p className="mt-2 text-sm text-exclusive-muted">
+            Status:{' '}
+            <span
+              className={
+                apiStatus === 'ok'
+                  ? 'font-medium text-emerald-600'
+                  : apiStatus === 'error'
+                    ? 'font-medium text-exclusive-red'
+                    : 'font-medium text-exclusive-muted'
+              }
+            >
+              {apiStatus === 'checking' ? 'Checking…' : apiStatus === 'ok' ? 'Reachable' : apiStatus === 'error' ? apiMessage : '—'}
+            </span>
+          </p>
+          <Button type="button" variant="outline" className="mt-3" onClick={handleSyncFromApi}>
+            Sync CMS from API
+          </Button>
+          {hydrateMsg ? <p className="mt-2 text-xs text-exclusive-muted">{hydrateMsg}</p> : null}
+        </section>
+      ) : (
+        <p className="mt-4 text-sm text-exclusive-muted">
+          Set <span className="font-mono text-exclusive-dark">VITE_API_BASE_URL</span> in{' '}
+          <span className="font-mono">.env</span> (see <span className="font-mono">.env.example</span>).
+        </p>
+      )}
+
+      <ul className="mt-8 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         <AdminDashLinkCard
           to="/admin/hero"
           title="Hero banners"
@@ -56,6 +116,12 @@ export default function AdminDashboardPage() {
           description="Center-focused cards: image overlay, brand, title, description, tags, and Learn more links."
           icon={<IconCarousel />}
         />
+        <AdminDashLinkCard
+          to="/admin/home-promo-carousel"
+          title="Headphone promo carousel"
+          description="MAGNUS-style swiper cards: badge, model, title, tags, Shop now, product image, and background style."
+          icon={<IconHeadphones />}
+        />
       </ul>
 
       <section className="relative mt-14 overflow-hidden rounded-2xl border border-red-200/60 bg-gradient-to-br from-red-50/90 via-white to-orange-50/40 p-6 shadow-inner dark:border-red-900/50 dark:from-red-950/35 dark:via-app-card dark:to-app-card md:p-8">
@@ -68,7 +134,8 @@ export default function AdminDashboardPage() {
             Reset storefront data
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-relaxed text-exclusive-muted">
-            Clears hero, homepage products, featured arrival, music promo banner, 3D story carousel, cables,
+            Clears hero, homepage products, featured arrival, music promo banner, 3D story carousel, headphone promo
+            carousel, cables,
             batteries, and smart-watch category overrides in this browser. The storefront returns to empty defaults
             until you add content again.
           </p>
@@ -94,6 +161,15 @@ function IconCarousel() {
     <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.75">
       <rect x="2" y="6" width="20" height="12" rx="2" />
       <path d="M8 10v4M16 10v4" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconHeadphones() {
+  return (
+    <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.75">
+      <path d="M4 14v3a2 2 0 002 2h1v-8H6a2 2 0 00-2 2v1zm14-3v8h1a2 2 0 002-2v-3a2 2 0 00-2-2h-1z" strokeLinejoin="round" />
+      <path d="M4 12a8 8 0 0116 0" strokeLinecap="round" />
     </svg>
   )
 }

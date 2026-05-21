@@ -23,8 +23,10 @@ export function useScrollRevealLayout() {
     if (main) {
       for (const node of main.children) {
         if (node.nodeType !== Node.ELEMENT_NODE) continue
-        const tag = node.tagName.toLowerCase()
-        if (tag === 'section' || tag === 'div') targets.push(node)
+        const el = /** @type {Element} */ (node)
+        if (el.getAttribute('data-hero') === 'true') continue
+        const tag = el.tagName.toLowerCase()
+        if (tag === 'section' || tag === 'div') targets.push(el)
       }
     }
     if (footerEl) targets.push(footerEl)

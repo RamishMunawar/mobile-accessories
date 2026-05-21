@@ -3,7 +3,8 @@ import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { useWishlist } from '../../context/WishlistContext'
 import { useCart } from '../../context/CartContext'
-import { getSession, logoutMock } from '../../auth/mockAuth'
+import { logout } from '../../api/auth'
+import { getSession } from '../../auth/mockAuth'
 import { mainNav } from '../../data/navigation'
 import { batteriesNavDropdownItems } from '../../data/batteriesNavDropdown'
 import { cablesNavDropdownItems } from '../../data/cablesNavDropdown'
@@ -107,8 +108,8 @@ export default function Header() {
     }
   }, [accountOpen])
 
-  function handleLogout() {
-    logoutMock()
+  async function handleLogout() {
+    await logout()
     setAccountOpen(false)
     setMobileNavOpen(false)
     navigate('/login', { replace: true })

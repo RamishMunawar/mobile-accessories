@@ -4,6 +4,7 @@ import HomePage from '../pages/HomePage'
 import LoginPage from '../pages/LoginPage'
 import ProductDetailPage from '../pages/ProductDetailPage'
 import SignUpPage from '../pages/SignUpPage'
+import VerifyEmailPage from '../pages/VerifyEmailPage'
 import CartPage from '../pages/CartPage'
 import CheckoutPage from '../pages/CheckoutPage'
 import OrderSuccessPage from '../pages/OrderSuccessPage'
@@ -24,6 +25,7 @@ import AdminCategoryPagesPage from '../pages/admin/AdminCategoryPagesPage'
 import AdminFeaturedArrivalPage from '../pages/admin/AdminFeaturedArrivalPage'
 import AdminPromoBannerPage from '../pages/admin/AdminPromoBannerPage'
 import AdminStoryCarouselPage from '../pages/admin/AdminStoryCarouselPage'
+import AdminHomePromoCarouselPage from '../pages/admin/AdminHomePromoCarouselPage'
 
 export default function App() {
   return (
@@ -47,6 +49,7 @@ export default function App() {
         </Route>
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route
           path="/admin/login"
           element={<Navigate to="/login" replace state={{ from: '/admin' }} />}
@@ -60,6 +63,7 @@ export default function App() {
             <Route path="featured-arrival" element={<AdminFeaturedArrivalPage />} />
             <Route path="promo-banner" element={<AdminPromoBannerPage />} />
             <Route path="story-carousel" element={<AdminStoryCarouselPage />} />
+            <Route path="home-promo-carousel" element={<AdminHomePromoCarouselPage />} />
           </Route>
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

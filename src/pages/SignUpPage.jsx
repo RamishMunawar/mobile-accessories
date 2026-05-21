@@ -1,8 +1,53 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { getAuthErrorMessage, registerUser } from '../api/auth'
+import { isApiConfigured } from '../config/env'
 import { Button } from '../components/ui/Button'
 import { TextField } from '../components/ui/TextField'
 
 export default function SignUpPage() {
+  const navigate = useNavigate()
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError('')
+
+    if (!isApiConfigured()) {
+      setError('API is not configured. Set VITE_API_BASE_URL in your .env file and restart the dev server.')
+      return
+    }
+
+    const fd = new FormData(e.currentTarget)
+    const firstName = String(fd.get('firstName') ?? '').trim()
+    const lastName = String(fd.get('lastName') ?? '').trim()
+    const email = String(fd.get('email') ?? '').trim()
+    const phone = String(fd.get('phone') ?? '').trim()
+    const password = String(fd.get('password') ?? '')
+
+    if (!firstName || !lastName || !email || !phone || !password) {
+      setError('Please fill in all fields.')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      await registerUser({ email, password, firstName, lastName, phone })
+      navigate('/login', {
+        replace: true,
+        state: {
+          registeredEmail: email,
+          message: 'Account created successfully. Please log in.',
+        },
+      })
+    } catch (err) {
+      setError(getAuthErrorMessage(err))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
     <div className="grid min-h-screen md:grid-cols-2">
       <div className="relative hidden bg-[#CBE4E8] md:flex md:items-center md:justify-center">
@@ -23,16 +68,41 @@ export default function SignUpPage() {
         <h1 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">
           Create an account
         </h1>
-        <p className="mt-3 text-exclusive-muted">Enter your details below</p>
+        <p className="mt-3 text-exclusive-muted">Register with your backend account</p>
 
-        <form className="mt-10 space-y-6" onSubmit={(e) => e.preventDefault()}>
-          <TextField required type="text" name="name" placeholder="Name" autoComplete="name" />
+        {error ? (
+          <p
+            className="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800 dark:bg-red-950/35 dark:text-red-200"
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
+
+        <form className="mt-10 space-y-5" onSubmit={handleSubmit}>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <TextField
+              required
+              type="text"
+              name="firstName"
+              placeholder="First name"
+              autoComplete="given-name"
+            />
+            <TextField
+              required
+              type="text"
+              name="lastName"
+              placeholder="Last name"
+              autoComplete="family-name"
+            />
+          </div>
+          <TextField required type="email" name="email" placeholder="Email" autoComplete="email" />
           <TextField
             required
-            type="text"
-            name="emailOrPhone"
-            placeholder="Email or Phone Number"
-            autoComplete="email"
+            type="tel"
+            name="phone"
+            placeholder="Phone"
+            autoComplete="tel"
           />
           <TextField
             required
@@ -40,14 +110,11 @@ export default function SignUpPage() {
             name="password"
             placeholder="Password"
             autoComplete="new-password"
+            minLength={8}
           />
 
-          <Button type="submit" variant="primary" size="md" fullWidth>
-            Create Account
-          </Button>
-
-          <Button type="button" variant="secondary" fullWidth>
-            Sign up with Google
+          <Button type="submit" variant="primary" size="md" fullWidth disabled={submitting}>
+            {submitting ? 'Creating account…' : 'Create Account'}
           </Button>
         </form>
 

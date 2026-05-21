@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { logoutMock } from '../../auth/mockAuth'
+import { logout } from '../../api/auth'
 import { Button } from '../ui/Button'
 
 function linkClass(isActive) {
@@ -18,8 +18,8 @@ function Placeholder({ children }) {
 export default function AccountSidebar() {
   const navigate = useNavigate()
 
-  function handleLogout() {
-    logoutMock()
+  async function handleLogout() {
+    await logout()
     navigate('/login', { replace: true })
   }
 

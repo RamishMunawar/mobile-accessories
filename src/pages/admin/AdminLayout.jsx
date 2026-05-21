@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { logoutMock } from '../../auth/mockAuth'
+import { logout as logoutUser } from '../../api/auth'
 import { clearAdminSession } from '../../site/adminAuth'
 import { cn } from '../../utils/cn'
 
@@ -11,14 +11,15 @@ const nav = [
   { to: '/admin/featured-arrival', label: 'Featured arrival', icon: IconSparkles },
   { to: '/admin/promo-banner', label: 'Music promo banner', icon: IconMegaphone },
   { to: '/admin/story-carousel', label: '3D story carousel', icon: IconCarousel },
+  { to: '/admin/home-promo-carousel', label: 'Headphone promo carousel', icon: IconHeadphones },
 ]
 
 export default function AdminLayout() {
   const navigate = useNavigate()
 
-  function logout() {
+  async function handleLogout() {
     clearAdminSession()
-    logoutMock()
+    await logoutUser()
     navigate('/login', { replace: true })
   }
 
@@ -85,7 +86,7 @@ export default function AdminLayout() {
               </Link>
               <button
                 type="button"
-                onClick={logout}
+                onClick={handleLogout}
                 className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-exclusive-muted transition hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40 dark:hover:text-red-300"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-app-muted/60 dark:bg-app-muted/40">
@@ -113,7 +114,7 @@ export default function AdminLayout() {
                 </Link>
                 <button
                   type="button"
-                  onClick={logout}
+                  onClick={handleLogout}
                   className="rounded-lg px-3 py-2 text-sm font-medium text-exclusive-muted underline-offset-4 hover:underline"
                 >
                   Out
@@ -158,6 +159,15 @@ function IconCarousel() {
       <circle cx="7" cy="12" r="1" fill="currentColor" stroke="none" />
       <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
       <circle cx="17" cy="12" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function IconHeadphones() {
+  return (
+    <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden stroke="currentColor" strokeWidth="1.85">
+      <path d="M4 14v3a2 2 0 002 2h1v-8H6a2 2 0 00-2 2v1zm14-3v8h1a2 2 0 002-2v-3a2 2 0 00-2-2h-1z" strokeLinejoin="round" />
+      <path d="M4 12a8 8 0 0116 0" strokeLinecap="round" />
     </svg>
   )
 }

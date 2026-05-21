@@ -13,6 +13,10 @@ import {
   defaultStoryCarouselCards,
   defaultStoryCarouselSettings,
 } from '../data/storyCarouselDefaults'
+import {
+  defaultHomePromoCarouselSettings,
+  defaultHomePromoSlides,
+} from '../data/homePromoCarouselDefaults'
 import { defaultHeroSlides } from '../data/heroSlides.defaults'
 import { getDefaultProductsBundle } from '../data/products.defaults'
 
@@ -39,6 +43,7 @@ const KEYS = {
   featuredArrival: 'exclusive-admin-featured-arrival-v1',
   promoBanner: 'exclusive-admin-promo-banner-v1',
   storyCarousel: 'exclusive-admin-story-carousel-v1',
+  homePromoCarousel: 'exclusive-admin-home-promo-carousel-v1',
 }
 
 /** @typedef {{ title: string; blurb: string }} CategoryPageMeta */
@@ -48,6 +53,8 @@ const KEYS = {
 /** @typedef {import('../data/promoBannerDefaults').PromoBannerBundle} PromoBannerBundle */
 /** @typedef {import('../data/storyCarouselDefaults').StoryCarouselCard} StoryCarouselCard */
 /** @typedef {{ items: StoryCarouselCard[]; autoRotate: boolean; rotateInterval: number }} StoryCarouselBundle */
+/** @typedef {import('../data/homePromoCarouselDefaults').HomePromoSlide} HomePromoSlide */
+/** @typedef {{ slides: HomePromoSlide[]; autoplayDelay: number }} HomePromoCarouselBundle */
 
 const EMPTY_FEATURED_ARRIVAL = /** @type {const} */ ({
   eyebrow: '',
@@ -236,6 +243,89 @@ export function setMergedStoryCarousel(bundle) {
 export function clearMergedStoryCarousel() {
   if (typeof window === 'undefined') return
   localStorage.removeItem(KEYS.storyCarousel)
+  notifySite()
+}
+
+/** @returns {HomePromoCarouselBundle} */
+export function getMergedHomePromoCarousel() {
+  const fallback = {
+    slides: defaultHomePromoSlides.map((s) => ({ ...s, tags: [...s.tags] })),
+    ...defaultHomePromoCarouselSettings,
+  }
+  if (typeof window === 'undefined') return fallback
+  try {
+    const raw = localStorage.getItem(KEYS.homePromoCarousel)
+    if (!raw) return fallback
+    const o = JSON.parse(raw)
+    if (!o || typeof o !== 'object') return fallback
+    const slidesRaw = Array.isArray(o.slides) ? o.slides : []
+    /** @type {HomePromoSlide[]} */
+    const slides =
+      slidesRaw.length > 0
+        ? slidesRaw.map((row, i) => {
+            const t = /** @type {Record<string, unknown>} */ (row && typeof row === 'object' ? row : {})
+            const tagsRaw = Array.isArray(t.tags) ? t.tags : []
+            const def = fallback.slides[i] ?? fallback.slides[0]
+            return {
+              id: String(t.id ?? def?.id ?? `promo-${i}`).trim() || `promo-${i}`,
+              badge: typeof t.badge === 'string' ? t.badge.trim() : undefined,
+              badgeAccent: t.badgeAccent === true,
+              model: typeof t.model === 'string' ? t.model.trim() : '',
+              title: String(t.title ?? '').trim(),
+              titleGradient: t.titleGradient === true,
+              tags: tagsRaw.map((tag) => String(tag).trim()).filter(Boolean),
+              image: String(t.image ?? '').trim(),
+              bgClass:
+                typeof t.bgClass === 'string' && t.bgClass.trim()
+                  ? t.bgClass.trim()
+                  : def?.bgClass ?? fallback.slides[0].bgClass,
+              imageOverlap: t.imageOverlap !== false,
+              shopNowLink:
+                typeof t.shopNowLink === 'string' && t.shopNowLink.trim()
+                  ? t.shopNowLink.trim()
+                  : '/#explore-products',
+            }
+          })
+        : fallback.slides
+    const delay = Number(o.autoplayDelay)
+    return {
+      slides,
+      autoplayDelay:
+        Number.isFinite(delay) && delay >= 2000 ? delay : fallback.autoplayDelay,
+    }
+  } catch {
+    return fallback
+  }
+}
+
+/** @param {HomePromoCarouselBundle} bundle */
+export function setMergedHomePromoCarousel(bundle) {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(
+    KEYS.homePromoCarousel,
+    JSON.stringify({
+      slides: bundle.slides.map((s) => ({
+        id: s.id.trim(),
+        badge: s.badge?.trim() || undefined,
+        badgeAccent: s.badgeAccent === true ? true : undefined,
+        model: s.model?.trim() ?? '',
+        title: s.title.trim(),
+        titleGradient: s.titleGradient === true ? true : undefined,
+        tags: s.tags.map((t) => t.trim()).filter(Boolean),
+        image: s.image.trim(),
+        bgClass: s.bgClass.trim(),
+        imageOverlap: s.imageOverlap !== false,
+        shopNowLink: (s.shopNowLink ?? '/#explore-products').trim() || '/#explore-products',
+      })),
+      autoplayDelay: bundle.autoplayDelay,
+    }),
+  )
+  notifySite()
+}
+
+export function clearMergedHomePromoCarousel() {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem(KEYS.homePromoCarousel)
   notifySite()
 }
 
@@ -456,6 +546,7 @@ export function clearSiteOverrides() {
   localStorage.removeItem(KEYS.featuredArrival)
   localStorage.removeItem(KEYS.promoBanner)
   localStorage.removeItem(KEYS.storyCarousel)
+  localStorage.removeItem(KEYS.homePromoCarousel)
   notifySite()
 }
 

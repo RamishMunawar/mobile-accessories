@@ -1,29 +1,10 @@
-import { useEffect, useState } from 'react'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
-import { isLoggedIn } from '../../auth/mockAuth'
+import { useAuthBootstrap } from '../../hooks/useAuthBootstrap'
 
 /** Customer storefront: must pass mock login before seeing MainLayout routes. */
 export default function RequireAuth() {
   const location = useLocation()
-  const [ready, setReady] = useState(false)
-  const [allowed, setAllowed] = useState(false)
-
-  function sync() {
-    setAllowed(isLoggedIn())
-    setReady(true)
-  }
-
-  useEffect(() => {
-    sync()
-    const onStorage = () => sync()
-    const onAuth = () => sync()
-    window.addEventListener('storage', onStorage)
-    window.addEventListener('exclusive-mock-auth', onAuth)
-    return () => {
-      window.removeEventListener('storage', onStorage)
-      window.removeEventListener('exclusive-mock-auth', onAuth)
-    }
-  }, [])
+  const { ready, allowed } = useAuthBootstrap()
 
   if (!ready) {
     return (

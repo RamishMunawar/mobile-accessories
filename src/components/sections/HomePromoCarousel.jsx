@@ -4,11 +4,18 @@ import { Autoplay, Navigation, Pagination } from 'swiper/modules'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
-import { homePromoSlides } from '../../data/homePromoSlides'
+import { useMemo } from 'react'
+import { useSiteUpdate } from '../../hooks/useSiteUpdate'
+import { getMergedHomePromoCarousel } from '../../site/siteStore'
 import { cn } from '../../utils/cn'
 
 /** Premium product-card carousel (Brand promo row on the home page). */
 export function HomePromoCarousel() {
+  const siteVersion = useSiteUpdate()
+  const { slides, autoplayDelay } = useMemo(() => getMergedHomePromoCarousel(), [siteVersion])
+
+  if (!slides.length) return null
+
   return (
     <>
       <div className="relative mx-auto max-w-[1440px] overflow-hidden px-4 sm:px-5 lg:px-8">
@@ -19,7 +26,7 @@ export function HomePromoCarousel() {
           speed={650}
           spaceBetween={16}
           autoplay={{
-            delay: 5500,
+            delay: autoplayDelay,
             disableOnInteraction: false,
             pauseOnMouseEnter: true,
           }}
@@ -37,7 +44,7 @@ export function HomePromoCarousel() {
             '[--swiper-pagination-bullet-horizontal-gap:6px]',
           )}
         >
-          {homePromoSlides.map((slide) => (
+          {slides.map((slide) => (
             <SwiperSlide key={slide.id} className="!h-auto py-3">
               <PromoCard slide={slide} />
             </SwiperSlide>
@@ -51,7 +58,7 @@ export function HomePromoCarousel() {
   )
 }
 
-/** @param {{ slide: (typeof homePromoSlides)[number] }} props */
+/** @param {{ slide: import('../../data/homePromoCarouselDefaults').HomePromoSlide }} props */
 function PromoCard({ slide }) {
   const darkCard = slide.id !== 'glacier'
 
@@ -132,7 +139,7 @@ function PromoCard({ slide }) {
         </div>
 
         <Link
-          to="/#explore-products"
+          to={slide.shopNowLink?.trim() || '/#explore-products'}
           className={cn(
             'group mt-1 inline-flex w-fit items-center gap-2 border-b pb-1 text-sm font-semibold transition',
             darkCard ? 'border-white/50 text-white' : 'border-neutral-800 text-neutral-900',

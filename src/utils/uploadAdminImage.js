@@ -1,3 +1,5 @@
+import { apiUrl } from '../api/client'
+import { getApiBaseUrl, getApiToken, getApiUploadPath } from '../config/env'
 import { readFileAsDataUrl } from './readDataUrlFile'
 
 const UPLOAD_MAX_BYTES = 5 * 1024 * 1024
@@ -22,6 +24,30 @@ export async function uploadAdminImage(file, maxBytes = UPLOAD_MAX_BYTES) {
     binary += String.fromCharCode(bytes[i])
   }
   const data = btoa(binary)
+
+  if (getApiBaseUrl()) {
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const headers = /** @type {Record<string, string>} */ ({})
+      const token = getApiToken()
+      if (token) headers.Authorization = `Bearer ${token}`
+      const res = await fetch(apiUrl(getApiUploadPath()), {
+        method: 'POST',
+        headers,
+        body: form,
+      })
+      if (res.ok) {
+        const payload = await res.json()
+        const url =
+          (typeof payload?.url === 'string' && payload.url) ||
+          (typeof payload?.data?.url === 'string' && payload.data.url)
+        if (url) return url
+      }
+    } catch {
+      // fall through to Vite dev upload
+    }
+  }
 
   try {
     const res = await fetch('/api/admin/upload', {
